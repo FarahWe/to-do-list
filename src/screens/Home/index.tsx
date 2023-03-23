@@ -13,7 +13,11 @@ import {
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 import { styles } from "./styles";
+
 import { TodoItem } from "../../components/TodoItem";
+import { EmptyList } from "../../components/EmptyList";
+import { Input } from "../../components/Input";
+import { SummarySession } from "../../components/SummarySession";
 
 export type TodoItemProps = {
   text: string;
@@ -24,16 +28,20 @@ export function Home() {
   const [inputValue, setInputValue] = useState("");
   const [todoList, setTodoList] = useState<TodoItemProps[]>([]);
 
-  const numberOfTodoDoneItems = todoList.filter(
-    (item) => item.isChecked === true
-  ).length;
-  const numberOfTodoUndoneItems = todoList.filter(
-    (item) => item.isChecked === false
-  ).length;
+  const todoDoneItems = todoList.filter((item) => item.isChecked === true);
+  const todoUndoneItems = todoList.filter((item) => item.isChecked === false);
 
   const handleAddTodo = () => {
+    const isAlreadyHaveThisTodo = todoList.findIndex(
+      (item) => item.text === inputValue
+    );
+
     if (inputValue.length === 0) {
       return;
+    }
+
+    if (isAlreadyHaveThisTodo !== -1) {
+      return Alert.alert("Todo Existe", "Já existe uma tarefa assim!");
     }
 
     setTodoList((prevState) => [
@@ -63,7 +71,42 @@ export function Home() {
     ]);
   };
 
-  const handleCheckTodo = (text: string) => {};
+  const handleCheckTodo = (item: TodoItemProps) => {
+    const findIndex = todoList.findIndex(
+      (todoItem) => item.text === todoItem.text
+    );
+
+    let newArray = [];
+
+    if (findIndex === -1) {
+      return Alert.alert("Error", "Não era pra isso tar acontecendo 😞.");
+    }
+
+    if (item.isChecked) {
+      newArray = todoList.map((item, index) => {
+        if (index === findIndex) {
+          return {
+            ...item,
+            isChecked: false,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      newArray = todoList.map((item, index) => {
+        if (index === findIndex) {
+          return {
+            ...item,
+            isChecked: true,
+          };
+        }
+
+        return item;
+      });
+    }
+    setTodoList(newArray);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -73,63 +116,29 @@ export function Home() {
         </View>
 
         <View style={styles.body}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={inputValue}
-              onChangeText={setInputValue}
-              placeholder="Adicione uma nova tarefa"
-              placeholderTextColor="#808080"
-              keyboardAppearance="dark"
-              style={styles.input}
-            />
-
-            <TouchableOpacity
-              style={styles.button}
-              activeOpacity={0.7}
-              onPress={handleAddTodo}
-            >
-              <AntDesign name="pluscircleo" color="white" size={20} />
-            </TouchableOpacity>
-          </View>
+          <Input
+            value={inputValue}
+            onAdd={handleAddTodo}
+            onChangeText={setInputValue}
+          />
 
           <View style={styles.listContainer}>
-            <View style={styles.previewContainer}>
-              <View style={styles.textLine}>
-                <Text style={styles.todo}>Criadas</Text>
-                <View style={styles.numberContainer}>
-                  <Text style={styles.number}>{numberOfTodoUndoneItems}</Text>
-                </View>
-              </View>
-
-              <View style={styles.textLine}>
-                <Text style={styles.done}>Concluídas</Text>
-                <View style={styles.numberContainer}>
-                  <Text style={styles.number}>{numberOfTodoDoneItems}</Text>
-                </View>
-              </View>
-            </View>
+            <SummarySession
+              todoDoneLength={todoDoneItems.length}
+              todoUndoneLength={todoUndoneItems.length}
+            />
 
             <FlatList
-              data={todoList}
+              data={[...todoUndoneItems, ...todoDoneItems]}
               keyExtractor={(item) => item.text}
               renderItem={({ item }) => (
                 <TodoItem
-                  onCheck={() => {}}
+                  onCheck={() => handleCheckTodo(item)}
                   onRemove={() => handleRemoveTodo(item.text)}
                   todoItem={item}
                 />
               )}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Image source={require("../../assets/Clipboard.png")} />
-                  <Text style={styles.emptyTitle}>
-                    Você ainda não tem tarefas cadastradas{"\n"}
-                    <Text style={styles.emptySubtitle}>
-                      Crie tarefas e organize seus itens a fazer
-                    </Text>
-                  </Text>
-                </View>
-              }
+              ListEmptyComponent={<EmptyList />}
               showsVerticalScrollIndicator={false}
               style={styles.list}
             />
