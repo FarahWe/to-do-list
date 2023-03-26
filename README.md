@@ -8,4 +8,4 @@ This application has the purpose to make a todo list for our routine. Here you c
 
 # Image of App
 
-![simulator_screenshot_3046DA57-3E16-4731-ACF4-419925CF050E](https://user-images.githubusercontent.com/82952503/227198358-a1fab82f-5ae3-4405-a0be-13df289133b5.png)
+![Capa](https://user-images.githubusercontent.com/82952503/227805831-73a496a5-7374-4bb8-bd21-9c7c58b0c326.png)
